@@ -1,26 +1,27 @@
-BungeeCord
-==========
-Layer 7 proxy designed to link Minecraft servers.
---------------------------------------------------
+# ZstdBungeeCord
 
-BungeeCord is a sophisticated proxy and API designed mainly to teleport players between multiple Minecraft servers. It is the latest incarnation of similar software written by the author from 2011-present.
+【不推荐使用，不值】Fabric Mod，将 MC 的网络包压缩算法更换为 Zstd 算法，需要配合 ZstdBungeeCord 使用。
 
-Information
------------
-BungeeCord is maintained by [SpigotMC](https://www.spigotmc.org/) and has its own [discussion thread](https://www.spigotmc.org/go/bungeecord) with plenty of helpful information and links.
+## 不推荐使用
 
-### Security warning
+⚠本仓库仅用于代码存档。  
+由于压缩率不佳，实际环境中不会产生很好的效果。
 
-As your Minecraft servers have to run without authentication (online-mode=false) for BungeeCord to work, this poses a new security risk. Users may connect to your servers directly, under any username they wish to use. The kick "If you wish to use IP forwarding, please enable it in your BungeeCord config as well!" does not protect your Spigot servers.
+测试结果：
+```plain
+============================================
+测试结果：
+原始总大小：917.3 MiB
+zlib：147.2 MiB
+zstd(标准)：144.7 MiB
+zstd(字典)：141.1 MiB
+============================================
+```
 
-To combat this, you need to restrict access to these servers for example with a firewall (please see [firewall guide](https://www.spigotmc.org/wiki/firewall-guide/)).
+## 特性
 
-Source
-------
-Source code is currently available on [GitHub](https://www.spigotmc.org/go/bungeecord-git).
-
-Binaries
---------
-Precompiled binaries are available for end users on [Jenkins](https://www.spigotmc.org/go/bungeecord-dl).
-
-(c) 2012-2023 SpigotMC Pty. Ltd.
+* 添加对 Zstd 压缩算法的支持，需要配合 FabricZstdProtocol
+* 仅在 FabricZstdProtocol 客户端上启用 Zstd 压缩算法，在接受正常客户端时时，仍然使用 zlib 默认压缩算法。
+* 支持服务端下发压缩配置（压缩率，Zstd字典）
+* 支持自定义 zlib 和 Zstd 的压缩率
+* 支持配置和提供 Zstd 字典
