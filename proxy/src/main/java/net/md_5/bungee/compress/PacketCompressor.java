@@ -12,13 +12,18 @@ public class PacketCompressor extends MessageToByteEncoder<ByteBuf>
 {
 
     private final BungeeZlib zlib = CompressFactory.zlib.newInstance();
+    private final int level;
     @Setter
     private int threshold = 256;
+
+    public PacketCompressor(int compressionLevel) {
+        this.level = compressionLevel;
+    }
 
     @Override
     public void handlerAdded(ChannelHandlerContext ctx) throws Exception
     {
-        zlib.init( true, Deflater.DEFAULT_COMPRESSION );
+        zlib.init( true, level );
     }
 
     @Override

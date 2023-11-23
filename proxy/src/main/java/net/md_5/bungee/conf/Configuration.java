@@ -4,12 +4,14 @@ import com.google.common.base.Preconditions;
 import gnu.trove.map.TMap;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
 import java.util.UUID;
 import java.util.logging.Level;
 import javax.imageio.ImageIO;
+
 import lombok.Getter;
 import net.md_5.bungee.api.Favicon;
 import net.md_5.bungee.api.ProxyConfig;
@@ -66,6 +68,9 @@ public class Configuration implements ProxyConfig
     private boolean ipForward;
     private Favicon favicon;
     private int compressionThreshold = 256;
+    private int compressionLevel = -1;
+    private boolean preferZstdProtocol = true;
+    private String zstdTrainedDict = "./zstdTrained.dict";
     private boolean preventProxyConnections;
     private boolean forgeSupport;
 
@@ -101,6 +106,9 @@ public class Configuration implements ProxyConfig
         throttleLimit = adapter.getInt( "connection_throttle_limit", throttleLimit );
         ipForward = adapter.getBoolean( "ip_forward", ipForward );
         compressionThreshold = adapter.getInt( "network_compression_threshold", compressionThreshold );
+        compressionLevel = adapter.getInt("network_compression_level", compressionLevel);
+        preferZstdProtocol = adapter.getBoolean("prefer_zstd_protocol", preferZstdProtocol);
+        zstdTrainedDict = adapter.getString("zstd_trained_dict", zstdTrainedDict);
         preventProxyConnections = adapter.getBoolean( "prevent_proxy_connections", preventProxyConnections );
         forgeSupport = adapter.getBoolean( "forge_support", forgeSupport );
 
@@ -160,5 +168,36 @@ public class Configuration implements ProxyConfig
     public Favicon getFaviconObject()
     {
         return favicon;
+    }
+    @Override
+    public int getCompressionLevel() {
+        return compressionLevel;
+    }
+    @Override
+    public int getCompressionThreshold() {
+        return compressionThreshold;
+    }
+    @Override
+    public boolean isPreferZstdProtocol() {
+        return preferZstdProtocol;
+    }
+    private byte[] cachedZstdTrainedDict = null;
+    @Override
+    public byte[] getZstdTrainedDict(){
+        if(cachedZstdTrainedDict != null){
+            return  cachedZstdTrainedDict;
+        }
+        File file = new File(zstdTrainedDict);
+        if(!file.exists()){
+            return new byte[0];
+        }else{
+            try {
+                cachedZstdTrainedDict = Files.readAllBytes(file.toPath());
+            } catch (IOException e) {
+                ProxyServer.getInstance().getLogger().log(Level.WARNING, "Failed to load Zstd trained dict from file "+file.getAbsolutePath(),e);
+                cachedZstdTrainedDict = new byte[0];
+            }
+            return cachedZstdTrainedDict;
+        }
     }
 }

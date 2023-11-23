@@ -183,7 +183,7 @@ public class ServerConnector extends PacketHandler
     @Override
     public void handle(SetCompression setCompression) throws Exception
     {
-        ch.setCompressionThreshold( setCompression.getThreshold() );
+        ch.setCompressionThreshold( setCompression.getThreshold(), setCompression.isUseZstd() , bungee.getConfig().getCompressionLevel());
     }
 
     @Override

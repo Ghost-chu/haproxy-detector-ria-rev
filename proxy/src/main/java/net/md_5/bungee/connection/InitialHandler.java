@@ -110,6 +110,7 @@ public class InitialHandler extends PacketHandler implements PendingConnection
     @Getter
     private String extraDataInHandshake = "";
     private UserConnection userCon;
+    private boolean zstdConnection;
 
     @Override
     public boolean shouldHandle(PacketWrapper packet) throws Exception
@@ -325,6 +326,10 @@ public class InitialHandler extends PacketHandler implements PendingConnection
             String[] split = handshake.getHost().split( "\0", 2 );
             handshake.setHost( split[0] );
             extraDataInHandshake = "\0" + split[1];
+            if(extraDataInHandshake.contains("zstd-protocol")){
+                zstdConnection = true;
+                bungee.getLogger().info(this +" Detected Zstd protocol header, mark connection to use Zstd compression");
+            }
         }
 
         // SRV records can end with a . depending on DNS / client.
@@ -592,7 +597,7 @@ public class InitialHandler extends PacketHandler implements PendingConnection
                     {
                         if ( !ch.isClosing() )
                         {
-                            userCon = new UserConnection( bungee, ch, getName(), InitialHandler.this );
+                            userCon = new UserConnection( bungee, ch, getName(), InitialHandler.this, zstdConnection );
                             userCon.setCompressionThreshold( BungeeCord.getInstance().config.getCompressionThreshold() );
 
                             if ( getVersion() < ProtocolConstants.MINECRAFT_1_20_2 )

@@ -638,7 +638,7 @@ public class DownstreamBridge extends PacketHandler
     @Override
     public void handle(SetCompression setCompression) throws Exception
     {
-        server.getCh().setCompressionThreshold( setCompression.getThreshold() );
+        server.getCh().setCompressionThreshold( setCompression.getThreshold(), setCompression.isUseZstd(), bungee.getConfig().getCompressionLevel() );
     }
 
     @Override

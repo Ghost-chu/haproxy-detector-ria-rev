@@ -81,6 +81,10 @@ public final class UserConnection implements ProxiedPlayer
     private final String name;
     @Getter
     private final InitialHandler pendingConnection;
+    @Getter
+    @Setter
+    @NonNull
+    private boolean zstdProtocolUser;
     /*========================================================================*/
     @Getter
     @Setter
@@ -755,8 +759,8 @@ public final class UserConnection implements ProxiedPlayer
         if ( !ch.isClosing() && this.compressionThreshold == -1 && compressionThreshold >= 0 )
         {
             this.compressionThreshold = compressionThreshold;
-            unsafe.sendPacket( new SetCompression( compressionThreshold ) );
-            ch.setCompressionThreshold( compressionThreshold );
+            unsafe.sendPacket( new SetCompression( compressionThreshold, isZstdProtocolUser(), bungee.getConfig().getCompressionLevel(), bungee.getConfig().getZstdTrainedDict() ) );
+            ch.setCompressionThreshold( compressionThreshold, isZstdProtocolUser(), bungee.getConfig().getCompressionLevel() );
         }
     }
 

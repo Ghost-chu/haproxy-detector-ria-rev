@@ -429,6 +429,19 @@ public abstract class DefinedPacket
         return set;
     }
 
+    public static int readVarIntSafely(ByteBuf buf) {
+        int i = 0;
+        int maxRead = Math.min(5, buf.readableBytes());
+        for (int j = 0; j < maxRead; j++) {
+            int k = buf.readByte();
+            i |= (k & 0x7F) << j * 7;
+            if ((k & 0x80) != 128) {
+                return i;
+            }
+        }
+        return Integer.MIN_VALUE;
+    }
+
     public static BitSet readFixedBitSet(int i, ByteBuf buf)
     {
         byte[] bits = new byte[ ( i + 8 ) >> 3 ];

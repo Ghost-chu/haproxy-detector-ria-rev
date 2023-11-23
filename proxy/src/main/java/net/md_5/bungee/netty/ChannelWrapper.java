@@ -9,14 +9,18 @@ import java.net.SocketAddress;
 import java.util.concurrent.TimeUnit;
 import lombok.Getter;
 import lombok.Setter;
+import net.md_5.bungee.BungeeCord;
 import net.md_5.bungee.compress.PacketCompressor;
 import net.md_5.bungee.compress.PacketDecompressor;
+import net.md_5.bungee.compress.ZstdPacketCompressor;
+import net.md_5.bungee.compress.ZstdPacketDecompressor;
 import net.md_5.bungee.protocol.DefinedPacket;
 import net.md_5.bungee.protocol.MinecraftDecoder;
 import net.md_5.bungee.protocol.MinecraftEncoder;
 import net.md_5.bungee.protocol.PacketWrapper;
 import net.md_5.bungee.protocol.Protocol;
 import net.md_5.bungee.protocol.packet.Kick;
+import org.slf4j.Logger;
 
 public class ChannelWrapper
 {
@@ -165,27 +169,23 @@ public class ChannelWrapper
         return ch;
     }
 
-    public void setCompressionThreshold(int compressionThreshold)
+    public void setCompressionThreshold(int compressionThreshold, boolean useZstd, int compressionLevel)
     {
-        if ( ch.pipeline().get( PacketCompressor.class ) == null && compressionThreshold >= 0 )
-        {
-            addBefore( PipelineUtils.PACKET_ENCODER, "compress", new PacketCompressor() );
+        if(ch.pipeline().get("compress") != null){
+            ch.pipeline().remove("compress");
         }
-        if ( compressionThreshold >= 0 )
-        {
-            ch.pipeline().get( PacketCompressor.class ).setThreshold( compressionThreshold );
-        } else
-        {
-            ch.pipeline().remove( "compress" );
+        if(ch.pipeline().get("decompress") != null){
+            ch.pipeline().remove("decompress");
         }
 
-        if ( ch.pipeline().get( PacketDecompressor.class ) == null && compressionThreshold >= 0 )
-        {
+        if (useZstd) {
+            addBefore( PipelineUtils.PACKET_ENCODER, "compress", new ZstdPacketCompressor(compressionLevel) );
+            addBefore( PipelineUtils.PACKET_DECODER, "decompress", new ZstdPacketDecompressor() );
+            BungeeCord.getInstance().getLogger().info("Switched to Zstd Compression for connection ["+this.remoteAddress+"]");
+        }else if (compressionThreshold > 0) {
+            addBefore( PipelineUtils.PACKET_ENCODER, "compress", new PacketCompressor(compressionLevel) );
             addBefore( PipelineUtils.PACKET_DECODER, "decompress", new PacketDecompressor() );
-        }
-        if ( compressionThreshold < 0 )
-        {
-            ch.pipeline().remove( "decompress" );
+            BungeeCord.getInstance().getLogger().fine("Switched to Gzip Compression for connection ["+this.remoteAddress+"].");
         }
     }
 }

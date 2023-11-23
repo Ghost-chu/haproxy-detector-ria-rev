@@ -17,17 +17,30 @@ public class SetCompression extends DefinedPacket
 {
 
     private int threshold;
+    private boolean useZstd = false;
+    private int level = 6;
+    private byte[] zstdDict = new byte[0];
 
     @Override
     public void read(ByteBuf buf, ProtocolConstants.Direction direction, int protocolVersion)
     {
         threshold = DefinedPacket.readVarInt( buf );
+        useZstd = DefinedPacket.readVarIntSafely( buf ) == 1;
+        if (useZstd) {
+            level = DefinedPacket.readVarIntSafely( buf );
+            zstdDict = DefinedPacket.readArray( buf );
+        }
     }
 
     @Override
     public void write(ByteBuf buf, ProtocolConstants.Direction direction, int protocolVersion)
     {
         DefinedPacket.writeVarInt( threshold, buf );
+        if(useZstd){
+            DefinedPacket.writeVarInt( 1, buf );
+            DefinedPacket.writeVarInt( level, buf);
+            DefinedPacket.writeArray( zstdDict, buf );
+        }
     }
 
     @Override
